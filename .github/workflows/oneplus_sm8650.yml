@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       REPO_MANIFEST:
-        description: "请选择要编译的机型："
+        description: "Chọn mẫu thiết bị："
         required: true
         type: choice
         options:
@@ -12,13 +12,13 @@ on:
           - 'oneplus_pad_pro'
         default: 'oneplus_ace5'
       enable_feature_y:
-        description: "启用lz4+zstd优化"
+        description: "Patch LZ4 & ZSTD"
         required: false
         default: true
         type: boolean
       enable_feature_x:
         type: boolean
-        description: "启用KPM"
+        description: "Bật KPM"
         required: false
         default: false
 
@@ -26,12 +26,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 📊 Check disk space (检查磁盘空间)
+      - name: 📊 Check disk space
         run: |
           echo "构建前磁盘空间："
           df -h
 
-      - name: ⚙️ Set REPO_MANIFEST (设置对应机型配置文件)
+      - name: ⚙️ Set REPO_MANIFEST
         id: set_manifest
         run: |
           case "${{ github.event.inputs.REPO_MANIFEST }}" in
@@ -49,7 +49,7 @@ jobs:
               ;;
           esac
 
-      - name: ⚙️ Set device-specific CCACHE_DIR (设置对应机型Cceche路径)
+      - name: ⚙️ Set device-specific CCACHE_DIR
         run: |
           echo "CCACHE_DIR=$HOME/.ccache_${REPO_MANIFEST}" >> $GITHUB_ENV
 
@@ -58,7 +58,7 @@ jobs:
           git config --global user.name "Q1udaoyu"
           git config --global user.email "sucisama2888@gmail.com"
 
-      - name: 🛠 Cache APT packages (缓存APT包)
+      - name: 🛠 Cache APT packages
         uses: actions/cache@v3
         with:
           path: /var/lib/apt/lists
@@ -66,7 +66,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-apt-
 
-      - name: 📦 Install dependencies (安装依赖)
+      - name: 📦 Install dependencies 
         run: |
           if [ ! -d "/var/lib/apt/lists" ] || [ -z "$(ls -A /var/lib/apt/lists)" ]; then
             echo "更新APT包列表..."
@@ -83,7 +83,7 @@ jobs:
           ccache --version
           echo "依赖安装完成"
 
-      - name: 📥 Restore ccache (载入 机型：${{ env.DEVICES_NAME }}的 ccache 缓存)
+      - name: 📥 Restore ccache
         uses: actions/cache@v3
         with:
           path: ${{ env.CCACHE_DIR }}
@@ -92,7 +92,7 @@ jobs:
             ccache-${{ runner.os }}-${{ env.REPO_MANIFEST }}-
             ccache-${{ runner.os }}-
 
-      - name: 📥 Init ccache (如果是第一次运行则初始化Cceche)
+      - name: 📥 Init ccache
         run: |
           export CCACHE_COMPILERCHECK="%compiler% -dumpmachine; %compiler% -dumpversion"
           export CCACHE_NOHASHDIR="true"
@@ -114,13 +114,13 @@ jobs:
             echo "未安装 ccache，跳过"
           fi
 
-      - name: 📥 Install repo tool (下载repo工具)
+      - name: 📥 Install repo tool
         run: |
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
           chmod a+x ~/repo
           sudo mv ~/repo /usr/local/bin/repo
 
-      - name: 📥 Initialize repo and sync (初始化repo并同步内核源码)
+      - name: 📥 Initialize repo and sync
         run: |
           mkdir kernel_workspace && cd kernel_workspace
           repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/sm8650 -m ${REPO_MANIFEST}.xml --depth=1
@@ -132,14 +132,14 @@ jobs:
           sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/common/scripts/setlocalversion
           sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/msm-kernel/scripts/setlocalversion
           sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/external/dtc/scripts/setlocalversion
-          sed -i '$s|echo "\$res"|echo "-android14-TG@qdykernel"|' kernel_platform/common/scripts/setlocalversion            
-          sed -i '$s|echo "\$res"|echo "-android14-TG@qdykernel"|' kernel_platform/msm-kernel/scripts/setlocalversion
-          sed -i '$s|echo "\$res"|echo "-android14-TG@qdykernel"|' kernel_platform/external/dtc/scripts/setlocalversion
+          sed -i '$s|echo "\$res"|echo "-Android14-Moon-Kernel"|' kernel_platform/common/scripts/setlocalversion            
+          sed -i '$s|echo "\$res"|echo "-Android14-Moon-Kernel"|' kernel_platform/msm-kernel/scripts/setlocalversion
+          sed -i '$s|echo "\$res"|echo "-Android14-Moon-Kernel"|' kernel_platform/external/dtc/scripts/setlocalversion
           # 清理abi保护
           rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
           rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
           
-      - name: ⚙️ Set up SukiSU Ultra (配置 SukiSU Ultra)
+      - name: ⚙️ Set up SukiSU Ultra
         run: |
           cd kernel_workspace/kernel_platform
           curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
@@ -149,7 +149,7 @@ jobs:
           export KSU_VERSION=$KSU_VERSION
           sed -i "s/DKSU_VERSION=12800/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
       
-      - name: 🔧 Set up SUSFS (配置 SUSFS)
+      - name: 🔧 Set up SUSFS
         run: |
           cd kernel_workspace
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
@@ -175,7 +175,7 @@ jobs:
             patch -p1 < 002-zstd.patch || true
           fi
 
-      - name: 🔧 Set gki_defconfig (设置编译配置)
+      - name: 🔧 Set gki_defconfig
         run: |
           cd kernel_workspace/kernel_platform
           # KSU
@@ -203,6 +203,7 @@ jobs:
           echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
           # BBR
           echo "CONFIG_TCP_CONG_ADVANCED=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_TCP_CONG_BBR=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -210,11 +211,16 @@ jobs:
           echo "CONFIG_TCP_CONG_BIC=n" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_TCP_CONG_WESTWOOD=n" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_TCP_CONG_HTCP=n" >> ./common/arch/arm64/configs/gki_defconfig
+          # BBR3
+          echo "CONFIG_TCP_CONG_BBR3=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_DEFAULT_BBR3=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo 'CONFIG_DEFAULT_TCP_CONG="bbr3"' >> ./common/arch/arm64/configs/gki_defconfig
+          
 
           # Remove check_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
 
-      - name: 🔨 Build Kernel (构建内核)
+      - name: 🔨 Build Kernel
         run: |
           export PATH="/usr/lib/ccache:$PATH"
           export PATH="$GITHUB_WORKSPACE/kernel_workspace/kernel_platform/prebuilts/clang/host/linux-x86/clang-r487747c/bin:$PATH"
@@ -231,7 +237,7 @@ jobs:
           
           make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS+=-O2  Image
 
-      - name: 📦 Apply Linux Patch (应用KPM修补补丁)
+      - name: 📦 Apply Linux Patch
         run: |
           cd kernel_workspace/kernel_platform/common/out/arch/arm64/boot
           curl -LO https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/0.12.0/patch_linux
@@ -240,20 +246,20 @@ jobs:
           rm -f Image
           mv oImage Image
          
-      - name: 📦 Make AnyKernel3 (创建AnyKernel3)
+      - name: 📦 Make AnyKernel3
         run: |
           git clone https://github.com/showdo/AnyKernel3.git --depth=1      
           rm -rf ./AnyKernel3/.git
           rm -rf ./AnyKernel3/push.sh
           cp kernel_workspace/kernel_platform/common/out/arch/arm64/boot/Image ./AnyKernel3/
 
-      - name: 📤 Upload AnyKernel3 (上传 AnyKernel3)
+      - name: 📤 Upload AnyKernel3
         uses: actions/upload-artifact@v4
         with:
-          name: AnyKernel3_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_SuKiSU
+          name: MoonKernel_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_SuKiSU
           path: ./AnyKernel3/*
          
-      - name: 📊 Post-build disk check (构建后空间检查)
+      - name: 📊 Post-build disk check
         run: |
           echo "构建后磁盘空间："
           df -h

@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       REPO_MANIFEST:
-        description: "Mẫu thiết bị："
+        description: "Mẫu thiết bị:"
         required: true
         type: choice
         options:
@@ -132,9 +132,9 @@ jobs:
           sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/common/scripts/setlocalversion
           sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/msm-kernel/scripts/setlocalversion
           sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' kernel_platform/external/dtc/scripts/setlocalversion
-          sed -i '$s|echo "\$res"|echo "-Moon-Kernel-'$(date +%d%m%Y)'"|'  kernel_platform/common/scripts/setlocalversion            
-          sed -i '$s|echo "\$res"|echo "-Moon-Kernel-'$(date +%d%m%Y)'"|'  kernel_platform/msm-kernel/scripts/setlocalversion
-          sed -i '$s|echo "\$res"|echo "-Moon-Kernel-'$(date +%d%m%Y)'"|'  kernel_platform/external/dtc/scripts/setlocalversion
+          sed -i '$s|echo "\$res"|echo "-Moon-Kernel-'$(date +%d%m%y)'"|'  kernel_platform/common/scripts/setlocalversion            
+          sed -i '$s|echo "\$res"|echo "-Moon-Kernel-'$(date +%d%m%y)'"|'  kernel_platform/msm-kernel/scripts/setlocalversion
+          sed -i '$s|echo "\$res"|echo "-Moon-Kernel-'$(date +%d%m%y)'"|'  kernel_platform/external/dtc/scripts/setlocalversion
           # 清理abi保护
           rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
           rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"

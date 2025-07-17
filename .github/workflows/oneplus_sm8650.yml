@@ -216,37 +216,7 @@ jobs:
           echo "CONFIG_TCP_CONG_BIC=n" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_TCP_CONG_WESTWOOD=n" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_TCP_CONG_HTCP=n" >> ./common/arch/arm64/configs/gki_defconfig
-          # 🔊 Loa ngoài & DSP processing
-          echo "CONFIG_SND_SOC_DOLBY=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_DOLBY_CODEC=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_DOLBY_DAP=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_DTS_EAGLE=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_DTS_EAGLE_CORE=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_DTS_EAGLE_FF=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_DTS_EAGLE_FF=y" >> ./common/arch/arm64/configs/gki_defconfig
-          # 🧠 Qualcomm DSP & audio backend
-          echo "CONFIG_SND_SOC_QCOM=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_QDSP6=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_QDSP6_QDSP6V2=y" >> ./common/arch/arm64/configs/gki_defconfig
-          # 🔊 Codec / Audio calibration / Gain tweaks
-          echo "CONFIG_SND_SOC_GENERIC_DMAENGINE_PCM=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_QCOM_COMMON=y" >> ./common/arch/arm64/configs/gki_defconfig
-          # 🎛️ Advanced tuning support
-          echo "CONFIG_SND_SUPPORT_24B_FORMAT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_COMPRESS=y" >> ./common/arch/arm64/configs/gki_defconfig
-          # 🔊 WCD939x codec + Qualcomm LPASS macro tối ưu
-          echo "CONFIG_SND_SOC_WCD939X=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_WCD_MODULES=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_WCD_MBHC=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_LPASS_MACRO=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_LPASS_WSA_MACRO=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_LPASS_VA_MACRO=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_LPASS_RX_MACRO=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_LPASS_TX_MACRO=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_LPASS_CPU=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_LPASS_PLATFORM=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SND_SOC_LPASS_APM=y" >> ./common/arch/arm64/configs/gki_defconfig
-           
+          
           # Remove check_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
 

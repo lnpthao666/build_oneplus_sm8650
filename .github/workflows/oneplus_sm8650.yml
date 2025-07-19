@@ -138,23 +138,13 @@ jobs:
           # 清理abi保护
           rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
           rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"         
-          cd kernel_platform/msm-kernel
-          git remote add google-bbr https://github.com/google/bbr.git
-          git fetch google-bbr v3
-          cd ../../..
-
-      - name: 🍒 Cherry-pick BBR v3 commits
+          
+      - name: 📥 Download BBRv3 files
         run: |
           cd kernel_workspace/kernel_platform/msm-kernel
-
-          # Cập nhật module "bbr" lên BBR v3
-          git cherry-pick cb31f3d || (git add . && git cherry-pick --continue)
-
-          # ECN-enabled BBR flows set ECT khi retransmits
-          git cherry-pick 88aff89 || (git add . && git cherry-pick --continue)
-
-          # Thêm README.md cho BBR v3 release
-          git cherry-pick 90210de || (git add . && git cherry-pick --continue)
+          curl -L https://raw.githubusercontent.com/lnpthao666/bbr/main/tcp.h -o include/net/tcp.h
+          curl -L https://raw.githubusercontent.com/lnpthao666/bbr/main/inet_connection_sock.h -o include/net/inet_connection_sock.h
+          curl -L https://raw.githubusercontent.com/lnpthao666/bbr/main/tcp_bbr.c -o net/ipv4/tcp_bbr.c
           
       - name: ⚙️ Set up SukiSU Ultra
         run: |

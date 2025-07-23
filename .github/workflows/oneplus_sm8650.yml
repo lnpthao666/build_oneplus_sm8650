@@ -30,7 +30,6 @@ jobs:
         run: |
           echo "构建前磁盘空间："
           df -h
-
       - name: ⚙️ Set REPO_MANIFEST
         id: set_manifest
         run: |
@@ -48,16 +47,13 @@ jobs:
               echo "DEVICES_NAME=${{ github.event.inputs.REPO_MANIFEST }}" >> $GITHUB_ENV
               ;;
           esac
-
       - name: ⚙️ Set device-specific CCACHE_DIR
         run: |
           echo "CCACHE_DIR=$HOME/.ccache_${REPO_MANIFEST}" >> $GITHUB_ENV
-
       - name: 📦 Configure Git
         run: |
           git config --global user.name "Q1udaoyu"
           git config --global user.email "sucisama2888@gmail.com"
-
       - name: 🛠 Cache APT packages
         uses: actions/cache@v3
         with:
@@ -65,7 +61,6 @@ jobs:
           key: ${{ runner.os }}-apt-${{ hashFiles('.github/workflows/Build_oneplus_sm8750.yml') }}
           restore-keys: |
             ${{ runner.os }}-apt-
-
       - name: 📦 Install dependencies 
         run: |
           if [ ! -d "/var/lib/apt/lists" ] || [ -z "$(ls -A /var/lib/apt/lists)" ]; then
@@ -79,10 +74,8 @@ jobs:
             build-essential flex bison libssl-dev \
             libncurses-dev liblz4-tool zlib1g-dev \
             libxml2-utils rsync unzip
-
           ccache --version
           echo "依赖安装完成"
-
       - name: 📥 Restore ccache
         uses: actions/cache@v3
         with:
@@ -91,7 +84,6 @@ jobs:
           restore-keys: |
             ccache-${{ runner.os }}-${{ env.REPO_MANIFEST }}-
             ccache-${{ runner.os }}-
-
       - name: 📥 Init ccache
         run: |
           export CCACHE_COMPILERCHECK="%compiler% -dumpmachine; %compiler% -dumpversion"
@@ -99,7 +91,6 @@ jobs:
           export CCACHE_HARDLINK="true"
           export CCACHE_DIR="${{ env.CCACHE_DIR }}"
           export CCACHE_MAXSIZE="8G"
-
           INIT_FLAG="$CCACHE_DIR/.ccache_initialized"
           if command -v ccache >/dev/null 2>&1; then
             if [ ! -f "$INIT_FLAG" ]; then
@@ -113,13 +104,11 @@ jobs:
           else
             echo "未安装 ccache，跳过"
           fi
-
       - name: 📥 Install repo tool
         run: |
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
           chmod a+x ~/repo
           sudo mv ~/repo /usr/local/bin/repo
-
       - name: 📥 Initialize repo and sync
         run: |
           mkdir kernel_workspace && cd kernel_workspace
@@ -137,14 +126,7 @@ jobs:
           sed -i '$s|echo "\$res"|echo "-Moon-Kernel-'$(date +%d%m%y)'"|'  kernel_platform/external/dtc/scripts/setlocalversion
           # 清理abi保护
           rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
-          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"         
-          
-      - name: 📥 Download BBRv3 files
-        run: |
-          cd kernel_workspace/kernel_platform/msm-kernel
-          curl -L https://raw.githubusercontent.com/lnpthao666/bbr/main/tcp.h -o include/net/tcp.h
-          curl -L https://raw.githubusercontent.com/lnpthao666/bbr/main/inet_connection_sock.h -o include/net/inet_connection_sock.h
-          curl -L https://raw.githubusercontent.com/lnpthao666/bbr/main/tcp_bbr.c -o net/ipv4/tcp_bbr.c
+          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
           
       - name: ⚙️ Set up SukiSU Ultra
         run: |
@@ -181,7 +163,6 @@ jobs:
             git apply -p1 < 001-lz4.patch || true
             patch -p1 < 002-zstd.patch || true
           fi
-
       - name: 🔧 Set gki_defconfig
         run: |
           cd kernel_workspace/kernel_platform
@@ -223,36 +204,25 @@ jobs:
           echo "CONFIG_TCP_CONG_BIC=n" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_TCP_CONG_WESTWOOD=n" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_TCP_CONG_HTCP=n" >> ./common/arch/arm64/configs/gki_defconfig
-
+          
           # Remove check_defconfig
           sed -i 's/check_defconfig//' ./common/build.config.gki
-                        
-      - name: 📥 Download and setup Clang 20
-        run: |
-          cd $GITHUB_WORKSPACE
-          mkdir -p clang20
-          wget -q https://github.com/cctv18/oneplus_sm8650_toolchain/releases/download/LLVM-Clang20-r547379/clang-r547379.zip -O clang20.zip
-          unzip -q clang20.zip -d clang20
-          rm clang20.zip
-
       - name: 🔨 Build Kernel
         run: |
           export PATH="/usr/lib/ccache:$PATH"
-          export PATH="$GITHUB_WORKSPACE/clang20/clang-r547379/bin:$PATH"
-          clang --version  # Check Clang version đang dùng
-
+          export PATH="$GITHUB_WORKSPACE/kernel_workspace/kernel_platform/prebuilts/clang/host/linux-x86/clang-r487747c/bin:$PATH"
+          
           export CCACHE_COMPILERCHECK="%compiler% -dumpmachine; %compiler% -dumpversion"
           export CCACHE_NOHASHDIR="true"
           export CCACHE_HARDLINK="true"
           export CCACHE_DIR="${{ env.CCACHE_DIR }}"
           export CCACHE_MAXSIZE="8G"
-    
+          
           cd kernel_workspace/kernel_platform/common
-    
+          
           make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS+=-O2  gki_defconfig
-    
+          
           make -j$(nproc --all) LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC="ccache clang" RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS+=-O2  Image
-
       - name: 📦 Apply Linux Patch
         run: |
           cd kernel_workspace/kernel_platform/common/out/arch/arm64/boot
@@ -268,7 +238,6 @@ jobs:
           rm -rf ./AnyKernel3/.git
           rm -rf ./AnyKernel3/push.sh
           cp kernel_workspace/kernel_platform/common/out/arch/arm64/boot/Image ./AnyKernel3/
-
       - name: 📤 Upload AnyKernel3
         uses: actions/upload-artifact@v4
         with:
